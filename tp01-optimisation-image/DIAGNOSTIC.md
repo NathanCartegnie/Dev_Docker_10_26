@@ -111,16 +111,16 @@ null
 
 * **Impact :** Impossible pour l'orchestrateur de connaître l'état réel du service en cas de freeze de l'application (le conteneur reste taggué "Running").
 
-### 3.2 Fichiers hors scope et données sensibles embarqués (Pas de .dockerignore)
+### 3.2 Fichiers hors scope et données sensibles embarqués
 
 * **Preuve :**
 
 ```bash
 $ docker run --rm shopapi:legacy ls -la /app
 total 140
--rwxr-xr-x 1 root root   183 Oct 26 08:35 .env
--rwxr-xr-x 1 root root    48 Oct 26 08:35 dump-prod-2024.sql
-drwxr-xr-x 2 root root  4096 Oct 26 08:36 test
+-rwxr-xr-x 1 root root   183 Oct 26 09:35 .env
+-rwxr-xr-x 1 root root    48 Oct 26 09:35 dump-prod-2024.sql
+drwxr-xr-x 2 root root  4096 Oct 26 09:36 test
 ```
 
 * **Impact :** Des secrets locaux (`.env`) et des données métier (`dump-prod-2024.sql`) ont été copiés dans le conteneur via `COPY . /app`, provoquant une fuite de données de production.
