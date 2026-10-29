@@ -1,0 +1,9 @@
+# mirror Docker Hub (pull-through cache), on ne peut pas pousser dessus
+version: 0.1
+storage:
+  filesystem:
+    rootdirectory: /var/lib/registry
+http:
+  addr: :5000
+proxy:
+  remoteurl: https://registry-1.docker.io

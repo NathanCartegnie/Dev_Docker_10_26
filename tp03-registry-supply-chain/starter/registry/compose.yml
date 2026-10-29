@@ -1,6 +1,48 @@
-# Registre "de dev" monté à la va-vite : à sécuriser (TLS, auth, persistance, suppression autorisée)
 services:
   registry:
     image: registry:2
+    restart: unless-stopped
     ports:
       - "5000:5000"
+    volumes:
+      - registry-data:/var/lib/registry
+      - ./config.yml:/etc/docker/registry/config.yml:ro
+      - ./certs:/certs:ro
+      - ./auth:/auth:ro
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:5002/debug/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  mirror:
+    image: registry:2
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5001:5000"
+    volumes:
+      - mirror-data:/var/lib/registry
+      - ./config-mirror.yml:/etc/docker/registry/config.yml:ro
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:5000/v2/"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  ui:
+    image: joxit/docker-registry-ui:2.5.7
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      SINGLE_REGISTRY: "true"
+      REGISTRY_TITLE: Shop SAS Registry
+      NGINX_PROXY_PASS_URL: https://registry:5000
+      REGISTRY_SECURED: "true"
+      DELETE_IMAGES: "true"
+    depends_on:
+      - registry
+
+volumes:
+  registry-data:
+  mirror-data:

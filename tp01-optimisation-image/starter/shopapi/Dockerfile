@@ -31,7 +31,8 @@ ARG GIT_SHA=unknown
 LABEL org.opencontainers.image.authors="DevOps Team" \
       org.opencontainers.image.title="Shop API" \
       org.opencontainers.image.version="${APP_VERSION}" \
-      org.opencontainers.image.revision="${GIT_SHA}"
+      org.opencontainers.image.revision="${GIT_SHA}" \
+      org.opencontainers.image.source="[https://github.com/NathanCartegnie/Dev_Docker_10_26]"
 
 WORKDIR /app
 
