@@ -1,0 +1,66 @@
+services:
+  proxy:
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=shop_front
+      - --entrypoints.web.address=:80
+      - --entrypoints.traefik.address=:8080
+      - --ping=true
+      - --ping.entrypoint=traefik
+      - --accesslog=true
+      - --accesslog.format=json
+      - --api.dashboard=false
+      - --api.insecure=false
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M
+
+  api:
+    image: ${REGISTRY:?REGISTRY doit être défini}/shopapi:${VERSION:?VERSION doit être défini}
+    build: !reset null
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+  worker:
+    image: ${REGISTRY:?REGISTRY doit être défini}/shop-worker:${VERSION:?VERSION doit être défini}
+    build: !reset null
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+  db:
+    deploy:
+      resources:
+        limits:
+          cpus: "0.75"
+          memory: 512M
+
+  redis:
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M

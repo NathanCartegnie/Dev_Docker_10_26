@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # Étape 1 : Builder & Tests (Multi-stage)
 # -----------------------------------------------------------------------------
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 
 WORKDIR /app
 
@@ -21,7 +21,7 @@ RUN npm run lint && npm test
 # -----------------------------------------------------------------------------
 # Étape 2 : Image de Production Minimale & Sécurisée
 # -----------------------------------------------------------------------------
-FROM node:20-alpine AS production
+FROM node:24-alpine AS production
 
 # Arguments pour l'injection des métadonnées OCI
 ARG APP_VERSION=dev
