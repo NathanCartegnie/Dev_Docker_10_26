@@ -1,0 +1,42 @@
+groups:
+  - name: shop
+    rules:
+      - alert: ApiDown
+        expr: up{job="api"} == 0 or absent(up{job="api"})
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: "API injoignable ({{ $labels.instance }})"
+
+      - alert: ApiHigh5xxRate
+        expr: |
+          sum(rate(http_request_duration_seconds_count{job="api",status=~"5.."}[5m]))
+            / sum(rate(http_request_duration_seconds_count{job="api"}[5m])) > 0.05
+        for: 2m
+        labels: { severity: critical }
+        annotations:
+          summary: "Plus de 5 % de réponses 5xx sur l'API"
+
+      - alert: ApiLatencyP95High
+        expr: |
+          histogram_quantile(0.95,
+            sum by (le) (rate(http_request_duration_seconds_bucket{job="api"}[5m]))) > 0.5
+        for: 2m
+        labels: { severity: warning }
+        annotations:
+          summary: "p95 de latence API > 500 ms"
+
+      - alert: ContainerRestarting
+        expr: changes(container_start_time_seconds{name=~"shop-.*"}[10m]) > 0
+        labels: { severity: warning }
+        annotations:
+          summary: "Le conteneur {{ $labels.name }} a redémarré"
+
+      - alert: ContainerMemoryHigh
+        expr: |
+          container_memory_working_set_bytes{name=~"shop-.*"}
+            / on(name) (container_spec_memory_limit_bytes{name=~"shop-.*"} > 0) > 0.9
+        for: 1m
+        labels: { severity: warning }
+        annotations:
+          summary: "{{ $labels.name }} utilise plus de 90 % de sa limite mémoire"

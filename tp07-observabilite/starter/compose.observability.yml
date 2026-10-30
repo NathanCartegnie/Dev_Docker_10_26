@@ -1,14 +1,84 @@
-# Stack d'observabilité à compléter, à lancer À CÔTÉ de la stack du TP04 (projet "shop").
-# Elle doit rejoindre les réseaux existants shop_front / shop_back pour scraper l'API et le worker.
+# Stack d'observabilité, à lancer À CÔTÉ de la stack du TP04 (projet "shop").
+# Elle rejoint le réseau existant shop_back pour scraper l'API et le worker.
 name: observability
+
 services:
   prometheus:
     image: prom/prometheus:v2.54.1
-    # TODO : config, volume, réseau, port
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=7d
+      - --web.enable-lifecycle
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prom-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - default      # pour joindre cadvisor / grafana
+      - shop_back    # pour joindre api et worker (DNS Docker)
+    restart: unless-stopped
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    command:
+      - --docker_only=true
+      - --housekeeping_interval=10s
+      - --store_container_labels=false
+      - --whitelisted_container_labels=com.docker.compose.service,com.docker.compose.project
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    restart: unless-stopped
+
+  loki:
+    image: grafana/loki:3.2.0
+    command: -config.file=/etc/loki/loki.yml
+    volumes:
+      - ./loki.yml:/etc/loki/loki.yml:ro
+      - loki-data:/loki
+    restart: unless-stopped
+
+  promtail:
+    image: grafana/promtail:3.2.0
+    command: -config.file=/etc/promtail/promtail.yml
+    volumes:
+      - ./promtail.yml:/etc/promtail/promtail.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - promtail-data:/positions
+    depends_on:
+      - loki
+    restart: unless-stopped
+
   grafana:
     image: grafana/grafana:11.2.0
-    # TODO : datasources provisionnées, dashboard, port 3001
-  # TODO : cadvisor (métriques conteneurs), loki + promtail (logs)
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+      - ./dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
+      - ./shop-overview.json:/var/lib/grafana/dashboards/shop-overview.json:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+      - loki
+    restart: unless-stopped
+
+volumes:
+  prom-data:
+  loki-data:
+  promtail-data:
+  grafana-data:
+
 networks:
   shop_front: { external: true }
   shop_back:  { external: true }
