@@ -1,0 +1,120 @@
+# compose.hardened.yml - Surcharge de durcissement sécuritaire TP08
+services:
+  # Proxy sécurisé pour isoler le socket Docker de Traefik
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy:v0.1.1
+    environment:
+      CONTAINERS: 1  # Traefik a uniquement besoin de lister les conteneurs
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 64M
+    networks:
+      - socket_net
+    restart: unless-stopped
+
+  traefik:
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.host=tcp://socket-proxy:2375"
+      - "--providers.docker.exposedbydefault=false"
+    depends_on:
+      - socket-proxy
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE # Requis pour binder les ports 80 et 443
+    read_only: true
+    tmpfs:
+      - /tmp
+    pids_limit: 100
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+    networks:
+      - default
+      - socket_net
+
+  api:
+    user: "1000:1000"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 50
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+  worker:
+    user: "1000:1000"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 50
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+  db:
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    pids_limit: 100
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+
+  redis:
+    user: "999:999" # Utilisateur redis standard non-root
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 50
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+
+networks:
+  socket_net:
+    internal: true # Réseau isolé sans accès internet pour le socket proxy
