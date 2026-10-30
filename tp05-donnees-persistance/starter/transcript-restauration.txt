@@ -1,0 +1,38 @@
+﻿**********************
+Début de la transcription Windows PowerShell
+Heure de début : 20261030102921
+Nom d'utilisateur : LAPTOP-2GBAN8G6\natha
+Utilisateur runAs :  LAPTOP-2GBAN8G6\natha
+Nom de la configuration : 
+Ordinateur : LAPTOP-2GBAN8G6 (Microsoft Windows NT 10.0.26200.0)
+Application hôte : powershell.exe -NoExit -ExecutionPolicy Bypass -File C:\Users\natha\AppData\Local\Programs\WebStorm\plugins\terminal\shell-integrations\powershell\powershell-integration.ps1
+ID de processus : 38472
+PSVersion: 5.1.26100.9444
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9444
+BuildVersion: 10.0.26100.9444
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcription démarrée, le fichier de sortie est transcript-restauration.txt
+PS C:\Users\natha\Documents\Ynov\Docker\TP01\tp05-donnees-persistance\starter> Get-Content seed.sql -Raw | docker compose exec -T db psql -U shop -d shop
+
+PS C:\Users\natha\Documents\Ynov\Docker\TP01\tp05-donnees-persistance\starter> bash ./checksum.sh
+
+PS C:\Users\natha\Documents\Ynov\Docker\TP01\tp05-donnees-persistance\starter> bash ./backup.sh
+
+PS C:\Users\natha\Documents\Ynov\Docker\TP01\tp05-donnees-persistance\starter> docker compose down -v
+
+PS C:\Users\natha\Documents\Ynov\Docker\TP01\tp05-donnees-persistance\starter> docker compose up -d --wait
+
+PS C:\Users\natha\Documents\Ynov\Docker\TP01\tp05-donnees-persistance\starter> bash ./restore.sh
+
+PS C:\Users\natha\Documents\Ynov\Docker\TP01\tp05-donnees-persistance\starter> bash ./checksum.sh
+
+PS C:\Users\natha\Documents\Ynov\Docker\TP01\tp05-donnees-persistance\starter> Stop-Transcript
+**********************
+Fin de la transcription Windows PowerShell
+Heure de fin : 20261030102955
+**********************

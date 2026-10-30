@@ -1,0 +1,20 @@
+services:
+  backup:
+    image: prodrigestivill/postgres-backup-local:14
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_DB: shop
+      POSTGRES_USER: shop
+      POSTGRES_PASSWORD: shop
+      SCHEDULE: "@every 1m"
+      BACKUP_KEEP_DAYS: 7
+      BACKUP_KEEP_WEEKS: 4
+      BACKUP_KEEP_MONTHS: 6
+    volumes:
+      - pgbackups:/backups
+volumes:
+  pgbackups:

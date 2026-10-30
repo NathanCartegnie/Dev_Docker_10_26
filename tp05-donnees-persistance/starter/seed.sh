@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Remplit la base avec un volume de données représentatif (≈ 100 000 commandes)
 set -euo pipefail
 
 DOCKER_CLI=docker
